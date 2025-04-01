@@ -23,7 +23,7 @@ class Fields:
         return TextField(
             adaptive=True, label="Буква артикула в реестре", value=self.config["article_data"]["registry_article_key"], width=220,
             text_style=TextStyle(size=12), capitalization=TextCapitalization.CHARACTERS,
-            input_filter=InputFilter(allow=True, regex_string=r"[A-Z]|^$"),
+            input_filter=InputFilter(allow=True, regex_string=r"[A-Za-z]|^$"),
             on_change=lambda _ : handler()
         )
 
@@ -31,7 +31,7 @@ class Fields:
         return TextField(
             label="Буква артикула в декларации", value=self.config["article_data"]["declaration_article_key"], width=220,
             text_style=TextStyle(size=12), capitalization=TextCapitalization.CHARACTERS,
-            input_filter=InputFilter(allow=True, regex_string=r"[A-Z]|^$"),
+            input_filter=InputFilter(allow=True, regex_string=r"[A-Za-z]|^$"),
             on_change= lambda _ : handler()
         )
 
