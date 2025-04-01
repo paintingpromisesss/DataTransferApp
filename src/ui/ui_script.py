@@ -1,6 +1,6 @@
 from flet import Page, FilePicker, Row, Column, NavigationBar, NavigationBarDestination, icons, Text, Container, alignment, FilePickerResultEvent, FilePickerFileType
 from src.app.app import App
-from src.config_system.utility import Utility
+from src.config_system.utility import Utility, errors
 from src.ui.fields import Fields
 from src.ui.buttons import Buttons
 from src.ui.other import Other
@@ -15,7 +15,7 @@ class UIScript:
         self.page.window.width = 490
         self.page.window.height = 400
         self.page.window_resizable = False
-        self.page.window.icon = "D:/Programming/DataTransferRework/assets/icon.ico"
+        self.page.window.icon = "assets/icon.ico"
 
         self.app = App()
         self.config = self.app.read_config()
@@ -53,8 +53,8 @@ class UIScript:
         self.saving_dialog = self.other.saving_dialog(
             self.saving_dialog_handler)
 
-        self.open_registry_file_button = self.buttons.open_registry_file_button()
-        self.open_declaration_file_button = self.buttons.open_declaration_file_button()
+        self.open_registry_file_button = self.buttons.open_registry_file_button(disabled=(self.config["paths"]["registry_path"] == ""))
+        self.open_declaration_file_button = self.buttons.open_declaration_file_button(disabled=(self.config["paths"]["declaration_path"] == ""))
 
         self.registry_file_picker_button = self.buttons.registry_file_picker_button(
             self.registry_file_picker)
@@ -64,7 +64,7 @@ class UIScript:
         self.excel_editor_button = self.buttons.excel_editor_button(
             self.excel_editor_button_handler)
         self.transfer_button = self.buttons.transfer_button(
-            self.transfer_button_handler)
+            self.transfer_button_handler, disabled=(self.config["paths"]["registry_path"] == "" or self.config["paths"]["declaration_path"] == ""))
 
         self.registry_funcs_row = Row(
             [
@@ -111,7 +111,11 @@ class UIScript:
             try:
                 return func(self, *args, **kwargs)
             except Exception as e:
-                self.error_dialog.content = Text(f"Произошла непредвиденная ошибка: {e}.")
+                if  type(e).__name__ == "ValueError":
+                    self.error_dialog.content = Text(
+                        f"Ошибка: {errors["ValueError"]}.")
+                else:
+                    self.error_dialog.content = Text(f"Произошла непредвиденная ошибка: {e}.")
                 self.error_dialog.open = True
                 self.page.update()
 
@@ -185,16 +189,22 @@ class UIScript:
             selected_file = e.files[0].path
             self.app.edit_registry_path(selected_file)
             self.registry_path_field.value = selected_file
+            self.open_registry_file_button.disabled = False
+            if self.open_declaration_file_button.disabled == False:
+                self.transfer_button.disabled = False
             self.page.update()
-
+            
     @error_handler
     def declaration_file_picker_handler(self, e: FilePickerResultEvent) -> None:
         if e.files:
             selected_file = e.files[0].path
             self.app.edit_declaration_path(selected_file)
             self.declaration_path_field.value = selected_file
+            self.open_declaration_file_button.disabled = False
+            if self.open_registry_file_button.disabled == False:
+                self.transfer_button.disabled = False
             self.page.update()
-
+            
     @error_handler
     def declaration_file_saver_handler(self, e: FilePickerResultEvent) -> None:
         save_location = e.path

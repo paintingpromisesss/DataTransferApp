@@ -1,19 +1,33 @@
-from os import path, getenv, startfile
+from os import path, getenv, name
 from time import sleep
+from subprocess import run
+
+errors = {
+    "ValueError": "Стартовые строки в реестре и/или декларации указаны неверно"
+}
 
 
 class Utility:
     @staticmethod
     def get_config_directory() -> str:
-        return path.join(getenv("USERPROFILE"), "Documents", "DataTransfer Config")
+        match Utility.get_os_type():
+            case "Windows":
+                return path.join(getenv("USERPROFILE"), "Documents", "DataTransfer Config")
+            case "Linux":
+                return path.join(getenv("HOME"), ".config", "DataTransfer Config")
 
     @staticmethod
     def get_config_path() -> str:
         return path.join(Utility.get_config_directory(), "config.json")
-
+    
     @staticmethod
     def get_temp_directory() -> str:
-        return getenv("TEMP")
+        match Utility.get_os_type():
+            case "Windows":
+                return path.join(getenv("USERPROFILE"), "AppData", "Local", "Temp")
+            case "Linux":
+                return path.join(getenv("HOME"), ".cache", "Temp")
+            
 
     @staticmethod
     def get_temp_path() -> str:
@@ -21,11 +35,27 @@ class Utility:
 
     @staticmethod
     def get_desktop_directory() -> str:
-        return path.normpath(path.join(getenv("USERPROFILE"), "Desktop"))
-
+        match Utility.get_os_type():
+            case "Windows":
+                return path.normpath(path.join(getenv("USERPROFILE"), "Desktop"))
+            case "Linux":
+                return path.normpath(path.join(getenv("HOME"), "Desktop"))
+    
+    @staticmethod
+    def get_os_type() -> str:
+        if name == "nt":
+            return "Windows"
+        elif name == "posix":
+            return "Linux"
+        
     @staticmethod
     def start_file(filepath: str) -> None:
-        startfile(filepath)
+        match Utility.get_os_type():
+            case "Windows":
+                from os import startfile
+                startfile(filepath)
+            case "Linux":
+                run(["xdg-open", filepath], check=True)
 
     @staticmethod
     def is_file_closed(filepath: str) -> bool:
