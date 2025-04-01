@@ -1,0 +1,41 @@
+name: Build and Release
+
+on:
+  release:
+    types: [published]  # Запускать при публикации релиза
+
+jobs:
+  build:
+    runs-on: windows-latest  # Используем Windows для сборки
+
+    steps:
+      # Шаг 1: Клонируем репозиторий
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Шаг 2: Устанавливаем Python
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.13.2  # Укажите версию Python, совместимую с вашим проектом
+
+      # Шаг 3: Устанавливаем Nuitka
+      - name: Install Nuitka
+        run: pip install nuitka
+
+      # Шаг 4: Устанавливаем зависимости проекта
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Шаг 5: Сборка .exe файла
+      - name: Build executable
+        run: nuitka --standalone --onefile --windows-icon-from-ico=assets/icon.ico --windows-console-mode=disable --lto=yes main.py
+
+      # Шаг 6: Загружаем собранный файл в релиз
+      - name: Upload to release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: main.exe # Путь к скомпилированному файлу
+          asset_name: DataTransferApp.exe  # Имя файла в релизе
+          asset_content_type: application/octet-stream
