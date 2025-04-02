@@ -14,7 +14,7 @@ class UIScript:
         self.page.title = "Перенос данных"
         self.page.window.width = 490
         self.page.window.height = 400
-        self.page.window_resizable = False
+        self.page.window.resizable = False
         self.page.window.icon = "assets/icon.ico"
 
         self.app = App()
