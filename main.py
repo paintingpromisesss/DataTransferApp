@@ -2,6 +2,7 @@ from flet import app
 from src.ui.ui_script import UIScript
 from sys import exit, argv, executable
 from subprocess import Popen
+from os import path
 import updater
 if __name__ == "__main__":
     updater = updater.Updater()
@@ -13,6 +14,7 @@ if __name__ == "__main__":
     download_url = updater.check_for_updates()
     if download_url:
         print("Update available. Downloading...")
+        current_executable = path.abspath(argv[0])
         Popen([executable, "--update-mode", download_url])
         exit()
     else:
