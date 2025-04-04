@@ -1,8 +1,9 @@
 from json import load
 from requests import get
-from os import replace, startfile
+from os import replace
 from time import sleep
 from sys import executable
+from src.config_system.utility import Utility
 class Updater:
     def __init__(self):
         with open("app_info.json", "r") as file:
@@ -20,7 +21,9 @@ class Updater:
                 if latest_version > self.version:
                     print(f"New version available: {latest_version}")
                     for asset in release["assets"]:
-                        if asset["name"].endswith(".exe"):
+                        if asset["name"].endswith(".exe") and Utility.get_os_type() == "Windows":
+                            return asset["browser_download_url"]
+                        elif asset["name"].endswith(".bin") and Utility.get_os_type() == "Linux":
                             return asset["browser_download_url"]
             else:
                 print(f"Error fetching release info: {response.status_code}")
@@ -42,7 +45,7 @@ class Updater:
         sleep(2)
         replace(temp_path, current_path)
         print('Update complete. Restarting application...')
-        startfile(current_path)
+        Utility.start_file(current_path)
     
     def run_update(self, download_url: str):
         temp_path = executable + ".new"
