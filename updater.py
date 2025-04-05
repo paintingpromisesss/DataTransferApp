@@ -1,53 +1,88 @@
-from json import load
-from requests import get
-from os import replace
-from time import sleep
-from sys import executable
+import json
+import requests
+from packaging import version
+import os
 from src.config_system.utility import Utility
+import sys
+import subprocess
+
+
 class Updater:
     def __init__(self):
-        with open("app_info.json", "r") as file:
-            temp = load(file)
-            self.version = temp["version"]
-            self.origin = temp["origin"]
+        with open("app_info.json", "r") as f:
+            self.info = json.load(f)
+            self.url = f"https://api.github.com/repos/{self._get_origin()}/releases/latest"
 
-    def check_for_updates(self):
-        url = f"https://api.github.com/repos/{self.origin}/releases/latest"
+    def _get_latest_version(self):
         try:
-            response = get(url)
-            if response.status_code == 200:
-                release = response.json()
-                latest_version = release["tag_name"]
-                if latest_version > self.version:
-                    print(f"New version available: {latest_version}")
-                    for asset in release["assets"]:
-                        if asset["name"].endswith(".exe") and Utility.get_os_type() == "Windows":
-                            return asset["browser_download_url"]
-                        elif asset["name"].endswith(".bin") and Utility.get_os_type() == "Linux":
-                            return asset["browser_download_url"]
-            else:
-                print(f"Error fetching release info: {response.status_code}")
+            response = requests.get(self.url)
+            response.raise_for_status()
+            data = response.json()
+            latest_version = data["tag_name"]
+            return latest_version
         except Exception as e:
-            print(f"Error checking for updates: {e}")
-        return None
+            print(f"Error fetching version: {e}")
+            return None
 
-    def download_update(self, download_url: str, temp_path: str):
-        print(f"Downloading update from {download_url}...")
-        response = get(download_url, stream=True)
-        with open(temp_path, "wb") as file:
-            for chunk in response.iter_content(chunk_size=1024):
-                if chunk:
-                    file.write(chunk)
-        print("Download complete.")
-    
-    def replace_and_restart(self, temp_path: str, current_path: str):
-        print("Replacing old version with new version...")
-        sleep(2)
-        replace(temp_path, current_path)
-        print('Update complete. Restarting application...')
-        Utility.start_file(current_path)
-    
-    def run_update(self, download_url: str):
-        temp_path = executable + ".new"
-        self.download_update(download_url, temp_path)
-        self.replace_and_restart(temp_path, executable)
+    def _get_current_version(self):
+        return self.info["version"]
+
+    def _get_origin(self):
+        return self.info["origin"]
+
+    def _is_update_available(self):
+        try:
+            latest_version = self._get_latest_version()
+            if latest_version:
+                current_version = self._get_current_version()
+                if version.parse(latest_version) > version.parse(current_version):
+                    return True
+                else:
+                    return False
+            else:
+                print("Could not fetch the latest version.")
+                return False
+        except Exception as e:
+            print(f"Error comparing versions: {e}")
+            return False
+
+    def _download_update(self):
+        try:
+            response = requests.get(self.url)
+            response.raise_for_status()
+            data = response.json()
+            download_url = None
+            if Utility.get_os_type() == "Windows":
+                for asset in data["assets"]:
+                    if asset["name"].endswith(".exe"):
+                        download_url = asset["browser_download_url"]
+                        break
+            elif Utility.get_os_type() == "Linux":
+                for asset in data["assets"]:
+                    if asset["name"].endswith(".bin"):
+                        download_url = asset["browser_download_url"]
+                        break
+            if download_url:
+
+                temp_dir = Utility.get_temp_directory()
+                file_name = os.path.join(
+                    temp_dir, f"DataTransferApp_update_{data['tag_name']}.exe")
+
+                # Download the file
+                print(f"Downloading update to {file_name}...")
+
+                with requests.get(download_url, stream=True) as r:
+                    r.raise_for_status()
+                    with open(file_name, 'wb') as f:
+                        for chunk in r.iter_content(chunk_size=8192):
+                            f.write(chunk)
+
+                print(f"Update downloaded to {file_name}")
+                return file_name
+            else:
+                print("No executable found in the release assets.")
+                return None
+
+        except Exception as e:
+            print(f"Error downloading update: {e}")
+            return None

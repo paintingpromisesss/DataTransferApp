@@ -26,7 +26,7 @@ class Utility:
             case "Windows":
                 return path.join(getenv("USERPROFILE"), "AppData", "Local", "Temp")
             case "Linux":
-                return path.join(getenv("HOME"), ".cache", "Temp")
+                return path.join("/tmp")
             
 
     @staticmethod
