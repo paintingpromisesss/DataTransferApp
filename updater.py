@@ -9,7 +9,9 @@ from src.config_system.utility import Utility
 
 class Updater:
     def __init__(self):
-        with open("app_info.json", "r") as f:
+        base_dir = path.dirname(path.abspath(__file__))
+        app_info_path = path.join(base_dir, "app_info.json")
+        with open(app_info_path, "r") as f:
             self.info = load(f)
         self.url = f"https://api.github.com/repos/{self.__get_origin()}/releases/latest"
 
