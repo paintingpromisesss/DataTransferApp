@@ -11,6 +11,7 @@ from src.config_system.config_service import ConfigService
 class ExcelConfigurator:
     def __init__(self) -> None:
         self.config_path = Utility.get_config_path()
+
     def init_temp_file(self):
         self.temp_file = NamedTemporaryFile(
             suffix=".xlsx", delete=False
@@ -31,7 +32,6 @@ class ExcelConfigurator:
         wb.save(self.temp_file.name)
         wb.close()
         self.temp_file.close()
-
 
     def _apply_styles_to_cells(self, wb: Workbook) -> None:
         sheet = wb.active

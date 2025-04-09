@@ -29,7 +29,8 @@ class Other:
             content=Text(
                 'Если все данные в порядке, нажмите "Сохранить", иначе - "Отменить"'),
             actions=[
-                ElevatedButton(text="Сохранить", on_click=lambda e: handler(e)),
+                ElevatedButton(text="Сохранить",
+                               on_click=lambda e: handler(e)),
                 ElevatedButton(text="Отменить", on_click=lambda e: handler(e)),
             ]
         )
@@ -39,8 +40,8 @@ class Other:
         return AlertDialog(
             title=Text("Произошла ошибка"),
             content=Text(""),
-            actions=
-            [
-                ElevatedButton(text="Ок", on_click=lambda e: error_dialog_handler(e))
+            actions=[
+                ElevatedButton(
+                    text="Ок", on_click=lambda e: error_dialog_handler(e))
             ]
         )

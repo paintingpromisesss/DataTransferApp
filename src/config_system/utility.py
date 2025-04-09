@@ -19,7 +19,7 @@ class Utility:
     @staticmethod
     def get_config_path() -> str:
         return path.join(Utility.get_config_directory(), "config.json")
-    
+
     @staticmethod
     def get_temp_directory() -> str:
         match Utility.get_os_type():
@@ -27,7 +27,6 @@ class Utility:
                 return path.join(getenv("USERPROFILE"), "AppData", "Local", "Temp")
             case "Linux":
                 return path.join("/tmp")
-            
 
     @staticmethod
     def get_temp_path() -> str:
@@ -40,14 +39,14 @@ class Utility:
                 return path.normpath(path.join(getenv("USERPROFILE"), "Desktop"))
             case "Linux":
                 return path.normpath(path.join(getenv("HOME"), "Desktop"))
-    
+
     @staticmethod
     def get_os_type() -> str:
         if name == "nt":
             return "Windows"
         elif name == "posix":
             return "Linux"
-        
+
     @staticmethod
     def start_file(filepath: str) -> None:
         match Utility.get_os_type():

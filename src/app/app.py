@@ -8,7 +8,7 @@ class App:
         self.config_service = ConfigService()
         self.transfer_service = TransferService()
         self.excel_configurator = ExcelConfigurator()
-        
+
     def read_config(self):
         return self.config_service.read_config()
 
@@ -47,6 +47,6 @@ class App:
 
     def delete_temp_declaration(self) -> None:
         self.transfer_service.delete_temp_declaration()
-    
+
     def save_temp_declaration(self, save_path: str) -> None:
         self.transfer_service.save_temp_declaration(save_path)

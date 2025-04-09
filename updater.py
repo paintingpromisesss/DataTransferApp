@@ -7,7 +7,6 @@ from subprocess import run, DETACHED_PROCESS
 from src.config_system.utility import Utility
 
 
-
 class Updater:
     def __init__(self):
         with open("app_info.json", "r") as f:
@@ -46,26 +45,25 @@ class Updater:
         except Exception as e:
             print(f"Error comparing versions: {e}")
             return False
-    
-    def __build_bat(self, current_executable, new_executable : str) -> str:
+
+    def __build_ps1(self, current_executable, new_executable: str) -> str:
         temp_dir = Utility.get_temp_directory()
         backup_executable = path.join(current_executable + ".backup")
-        bat_path = path.join(temp_dir, "update_script.bat")
+        ps1_path = path.join(temp_dir, "update_script.ps1")
 
-        bat_script = f"""@echo off
-timeout /t 1 /nobreak >nul
-del "{backup_executable}" 2 >nul
-ren "{current_executable}" "{path.basename(backup_executable)}"
-copy "{new_executable}" "{current_executable}"
-start "" "{current_executable}" --no_update
-del "{new_executable}"
-del "{bat_path}"
+        ps1_script = f"""chcp 65001
+Start-Sleep -Seconds 1
+Remove-Item -Path "{backup_executable}" -ErrorAction SilentlyContinue
+Rename-Item -Path "{current_executable}" -NewName "{path.basename(backup_executable)}"
+Copy-Item -Path "{new_executable}" -Destination "{current_executable}"
+Start-Process -FilePath "{current_executable}" -ArgumentList "--no_update" -NoNewWindow
+Remove-Item -Path "{new_executable}"
+Remove-Item -Path "{ps1_path}"
 """
-        
-        with open(bat_path, "w") as bat_file:
-            bat_file.write(bat_script)
-        return bat_path
 
+        with open(ps1_path, "w") as ps1_file:
+            ps1_file.write(ps1_script)
+        return ps1_path
 
     def __download_update(self):
         try:
@@ -106,30 +104,20 @@ del "{bat_path}"
         except Exception as e:
             print(f"Error downloading update: {e}")
             return None
-    
+
     def run_updater(self, current_executable) -> None:
         try:
             if self.__is_update_available():
                 print('Update available')
                 file_name = self.__download_update()
                 if file_name:
-                    bat_path = self.__build_bat(current_executable, file_name)
-                    print(f"Running update script: {bat_path}")
-                    command = f'Start-Process -FilePath "{bat_path}" -Verb RunAs'
-                    run(["powershell", "-Command", command], shell=True, creationflags=DETACHED_PROCESS)
+                    ps1_path = self.__build_ps1(current_executable, file_name)
+                    print(f"Running update script: {ps1_path}")
+                    command = f'Start-Process -FilePath "powershell" -ArgumentList "-ExecutionPolicy Bypass -File {ps1_path}" -Verb RunAs'
+                    run(["powershell", "-Command", command],
+                        shell=True, creationflags=DETACHED_PROCESS)
                     exit(0)
                     return True
         except Exception as e:
             print(f"Error in updater: {e}")
             return False
-    
-    def cleanup(self) -> None:
-        try:
-            temp_dir = Utility.get_temp_directory()
-            bat_path = path.join(temp_dir, "update_script.bat")
-            if path.exists(bat_path):
-                path.remove(bat_path)
-                print(f"Removed temporary file: {bat_path}")
-        except Exception as e:
-            print(f"Error cleaning up: {e}")
-

@@ -1,4 +1,4 @@
-.PHONY: win-build linux-build
+.PHONY: build
 
 
 build:
