@@ -24,7 +24,7 @@ class Fields:
             adaptive=True, label="Буква артикула в реестре", value=self.config["article_data"]["registry_article_key"], width=220,
             text_style=TextStyle(size=12), capitalization=TextCapitalization.CHARACTERS,
             input_filter=InputFilter(allow=True, regex_string=r"[A-Za-z]|^$"),
-            on_change=lambda _ : handler()
+            on_change=lambda _: handler()
         )
 
     def declaration_article_field(self, handler) -> TextField:
@@ -32,19 +32,19 @@ class Fields:
             label="Буква артикула в декларации", value=self.config["article_data"]["declaration_article_key"], width=220,
             text_style=TextStyle(size=12), capitalization=TextCapitalization.CHARACTERS,
             input_filter=InputFilter(allow=True, regex_string=r"[A-Za-z]|^$"),
-            on_change= lambda _ : handler()
+            on_change=lambda _: handler()
         )
 
     def registry_start_row_field(self, handler) -> TextField:
         return TextField(
             adaptive=True, label="Стартовая строка в реестре", value=self.config["start_rows"]["registry_start_row"], width=220,
             text_style=TextStyle(size=12), input_filter=NumbersOnlyInputFilter(),
-            on_change=lambda _ : handler()
+            on_change=lambda _: handler()
         )
 
     def declaration_start_row_field(self, handler) -> TextField:
         return TextField(
             adaptive=True, label="Стартовая строка в декларации", value=self.config["start_rows"]["declaration_start_row"], width=220,
             text_style=TextStyle(size=12), input_filter=NumbersOnlyInputFilter(),
-            on_change=lambda _ : handler()
+            on_change=lambda _: handler()
         )

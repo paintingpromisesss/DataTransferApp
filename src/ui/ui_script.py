@@ -14,7 +14,7 @@ class UIScript:
         self.page.title = "Перенос данных"
         self.page.window.width = 490
         self.page.window.height = 400
-        self.page.window_resizable = False
+        self.page.window.resizable = False
         self.page.window.icon = "assets/icon.ico"
 
         self.app = App()
@@ -53,8 +53,10 @@ class UIScript:
         self.saving_dialog = self.other.saving_dialog(
             self.saving_dialog_handler)
 
-        self.open_registry_file_button = self.buttons.open_registry_file_button(disabled=(self.config["paths"]["registry_path"] == ""))
-        self.open_declaration_file_button = self.buttons.open_declaration_file_button(disabled=(self.config["paths"]["declaration_path"] == ""))
+        self.open_registry_file_button = self.buttons.open_registry_file_button(
+            disabled=(self.config["paths"]["registry_path"] == ""))
+        self.open_declaration_file_button = self.buttons.open_declaration_file_button(
+            disabled=(self.config["paths"]["declaration_path"] == ""))
 
         self.registry_file_picker_button = self.buttons.registry_file_picker_button(
             self.registry_file_picker)
@@ -111,11 +113,12 @@ class UIScript:
             try:
                 return func(self, *args, **kwargs)
             except Exception as e:
-                if  type(e).__name__ == "ValueError":
+                if type(e).__name__ == "ValueError":
                     self.error_dialog.content = Text(
                         f"Ошибка: {errors["ValueError"]}.")
                 else:
-                    self.error_dialog.content = Text(f"Произошла непредвиденная ошибка: {e}.")
+                    self.error_dialog.content = Text(
+                        f"Произошла непредвиденная ошибка: {e}.")
                 self.error_dialog.open = True
                 self.page.update()
 
@@ -193,7 +196,7 @@ class UIScript:
             if self.open_declaration_file_button.disabled == False:
                 self.transfer_button.disabled = False
             self.page.update()
-            
+
     @error_handler
     def declaration_file_picker_handler(self, e: FilePickerResultEvent) -> None:
         if e.files:
@@ -204,7 +207,7 @@ class UIScript:
             if self.open_registry_file_button.disabled == False:
                 self.transfer_button.disabled = False
             self.page.update()
-            
+
     @error_handler
     def declaration_file_saver_handler(self, e: FilePickerResultEvent) -> None:
         save_location = e.path

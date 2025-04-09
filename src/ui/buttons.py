@@ -1,9 +1,12 @@
 from flet import IconButton, icons, FilePickerFileType
 from src.config_system.utility import Utility
 from src.config_system.config_service import ConfigService
+
+
 class Buttons:
     def __init__(self) -> None:
         self.config_path = Utility.get_config_path()
+
     def registry_file_picker_button(self, handler) -> IconButton:
         return IconButton(
             icon=icons.SETTINGS,
@@ -47,6 +50,7 @@ class Buttons:
             disabled=disabled,
             tooltip="Открыть декларацию"
         )
+
     def excel_editor_button(self, handler) -> IconButton:
         return IconButton(
             icon=icons.EDIT_DOCUMENT,
