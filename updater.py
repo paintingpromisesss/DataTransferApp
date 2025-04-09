@@ -2,7 +2,7 @@ from json import load
 from requests import get
 from packaging import version
 from os import path
-from sys import argv, exit
+from sys import exit
 from subprocess import run, DETACHED_PROCESS
 from src.config_system.utility import Utility
 
