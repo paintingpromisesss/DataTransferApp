@@ -31,7 +31,7 @@ class Updater:
     def __get_origin(self):
         return self.info["origin"]
 
-    def is_update_available(self):
+    def __is_update_available(self):
         try:
             latest_version = self.__get_latest_version()
             if latest_version:
@@ -47,7 +47,7 @@ class Updater:
             print(f"Error comparing versions: {e}")
             return False
     
-    def build_bat(self, current_executable, new_executable : str) -> str:
+    def __build_bat(self, current_executable, new_executable : str) -> str:
         temp_dir = Utility.get_temp_directory()
         backup_executable = path.join(current_executable + ".backup")
         bat_path = path.join(temp_dir, "update_script.bat")
@@ -67,7 +67,7 @@ del "{bat_path}"
         return bat_path
 
 
-    def download_update(self):
+    def __download_update(self):
         try:
             response = get(self.url)
             response.raise_for_status()
@@ -133,9 +133,3 @@ del "{bat_path}"
         except Exception as e:
             print(f"Error cleaning up: {e}")
 
-updater = Updater()
-if updater.is_update_available():
-                print('Update available')
-                file_name = updater.download_update()
-                if file_name:
-                    bat_path = updater.build_bat(argv[0], file_name)
