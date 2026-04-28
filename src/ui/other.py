@@ -1,4 +1,11 @@
-from flet import Container, ProgressRing, colors, Page, alignment, AlertDialog, ElevatedButton, Text
+from flet.core import alignment
+from flet.core.alert_dialog import AlertDialog
+from flet.core.colors import colors
+from flet.core.container import Container
+from flet.core.elevated_button import ElevatedButton
+from flet.core.page import Page
+from flet.core.progress_ring import ProgressRing
+from flet.core.text import Text
 
 
 class Other:

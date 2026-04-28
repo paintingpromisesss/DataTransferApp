@@ -1,15 +1,13 @@
-from flet import app
+from flet.app import app
+from src.config_system.utility import Utility
 from src.ui.ui_script import UIScript
-from updater import Updater
-from sys import argv
+import traceback
 
 
 if __name__ == "__main__":
-    if len(argv) > 1:
-        if argv[1] == "--no_update":
-            app(UIScript)
-    else:
-        updater = Updater()
-        update_triggered = updater.run_updater(argv[0])
-        if not update_triggered:
-            app(UIScript)
+    try:
+        app(UIScript, assets_dir=Utility.get_assets_directory())
+    except Exception:
+        traceback.print_exc()
+        input("\nНажмите Enter, чтобы закрыть программу...")
+        raise

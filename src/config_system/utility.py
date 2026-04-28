@@ -9,6 +9,18 @@ errors = {
 
 class Utility:
     @staticmethod
+    def get_app_directory() -> str:
+        return path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
+
+    @staticmethod
+    def get_assets_directory() -> str:
+        return path.join(Utility.get_app_directory(), "assets")
+
+    @staticmethod
+    def get_asset_path(filename: str) -> str:
+        return path.join(Utility.get_assets_directory(), filename)
+
+    @staticmethod
     def get_config_directory() -> str:
         match Utility.get_os_type():
             case "Windows":

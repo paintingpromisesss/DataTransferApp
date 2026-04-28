@@ -5,3 +5,7 @@
 main.*
 DataTransferApp.*
 __pycache__
+dist-installer
+.codegraph
+.vscode
+.codex

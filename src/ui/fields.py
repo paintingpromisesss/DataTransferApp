@@ -1,4 +1,10 @@
-from flet import TextField, TextStyle, TextCapitalization, InputFilter, NumbersOnlyInputFilter
+from flet.core.text_style import TextStyle
+from flet.core.textfield import (
+    InputFilter,
+    NumbersOnlyInputFilter,
+    TextCapitalization,
+    TextField,
+)
 
 
 class Fields:

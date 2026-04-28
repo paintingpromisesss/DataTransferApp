@@ -1,4 +1,13 @@
-from flet import Page, FilePicker, Row, Column, NavigationBar, NavigationBarDestination, icons, Text, Container, alignment, FilePickerResultEvent, FilePickerFileType
+from flet.core import alignment
+from flet.core.column import Column
+from flet.core.container import Container
+from flet.core.file_picker import FilePicker, FilePickerFileType, FilePickerResultEvent
+from flet.core.image import Image
+from flet.core.navigation_bar import NavigationBar, NavigationBarDestination
+from flet.core.page import Page
+from flet.core.row import Row
+from flet.core.text import Text
+from flet.core.types import ThemeMode
 from src.app.app import App
 from src.config_system.utility import Utility, errors
 from src.ui.fields import Fields
@@ -12,10 +21,11 @@ class UIScript:
     def __init__(self, default_page: Page) -> None:
         self.page = default_page
         self.page.title = "Перенос данных"
+        self.page.theme_mode = ThemeMode.DARK
         self.page.window.width = 490
         self.page.window.height = 400
         self.page.window.resizable = False
-        self.page.window.icon = "assets/icon.ico"
+        self.page.window.icon = Utility.get_asset_path("icon.ico")
 
         self.app = App()
         self.config = self.app.read_config()
@@ -96,9 +106,13 @@ class UIScript:
         self.page.navigation_bar = NavigationBar(
             destinations=[
                 NavigationBarDestination(
-                    label="Перенос", icon=icons.MERGE_TYPE),
+                    label="Перенос",
+                    icon=Image(src="merge_type.svg", width=24, height=24),
+                ),
                 NavigationBarDestination(
-                    label="Настройки", icon=icons.DISPLAY_SETTINGS)
+                    label="Настройки",
+                    icon=Image(src="display_settings.svg", width=24, height=24),
+                )
             ],
             on_change=self.navigation_bar_handler,
             selected_index=0)

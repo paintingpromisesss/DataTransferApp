@@ -10,6 +10,17 @@ class TransferService:
         self.config_path = Utility.get_config_path()
         self.path_to_temp_declaration = Utility.get_temp_path()
 
+    @staticmethod
+    def _normalize_article(article) -> str | None:
+        if article is None:
+            return None
+
+        normalized_article = str(article).strip()
+        if normalized_article == "":
+            return None
+
+        return normalized_article
+
     def transfer(self) -> None:
         config_data = ConfigService.static_read_config(self.config_path)
         registry_article_key = config_data["article_data"]["registry_article_key"]
@@ -25,15 +36,15 @@ class TransferService:
 
         registry_articles = dict()
         for registry_row in range(int(config_data["start_rows"]["registry_start_row"]), registry_sheet.max_row + 1):
-            registry_article_cell = str(
-                registry_sheet[registry_article_key + str(registry_row)].value).rstrip(" ")
+            registry_article_cell = self._normalize_article(
+                registry_sheet[registry_article_key + str(registry_row)].value)
             if registry_article_cell:
                 registry_articles[registry_article_cell] = registry_row
 
         for declaration_row in range(int(config_data["start_rows"]["declaration_start_row"]), declaration_sheet.max_row + 1):
-            declaration_article_cell = str(
-                declaration_sheet[declaration_article_key + str(declaration_row)].value).rstrip(" ")
-            if declaration_article_cell in registry_articles.keys():
+            declaration_article_cell = self._normalize_article(
+                declaration_sheet[declaration_article_key + str(declaration_row)].value)
+            if declaration_article_cell in registry_articles:
                 registry_row = registry_articles[declaration_article_cell]
                 for registry_sign in config_data["transfer_pairs"].keys():
                     declaration_sheet[config_data["transfer_pairs"][registry_sign] + str(
