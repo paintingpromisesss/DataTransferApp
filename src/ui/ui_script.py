@@ -6,8 +6,10 @@ from flet.core.image import Image
 from flet.core.navigation_bar import NavigationBar, NavigationBarDestination
 from flet.core.page import Page
 from flet.core.row import Row
+from flet.core.stack import Stack
 from flet.core.text import Text
 from flet.core.types import ThemeMode
+from logging import getLogger
 from src.app.app import App
 from src.config_system.utility import Utility, errors
 from src.ui.fields import Fields
@@ -15,6 +17,8 @@ from src.ui.buttons import Buttons
 from src.ui.other import Other
 from atexit import register
 from time import sleep
+
+logger = getLogger(__name__)
 
 
 class UIScript:
@@ -25,6 +29,7 @@ class UIScript:
         self.page.window.width = 490
         self.page.window.height = 400
         self.page.window.resizable = False
+        self.page.window.maximizable = False
         self.page.window.icon = Utility.get_asset_path("icon.ico")
 
         self.app = App()
@@ -55,6 +60,8 @@ class UIScript:
 
         self.declaration_file_saver = FilePicker(
             on_result=self.declaration_file_saver_handler)
+        self.logs_file_saver = FilePicker(
+            on_result=self.logs_file_saver_handler)
 
         self.progress_ring = self.other.progress_ring()
 
@@ -75,6 +82,8 @@ class UIScript:
 
         self.excel_editor_button = self.buttons.excel_editor_button(
             self.excel_editor_button_handler)
+        self.save_logs_button = self.buttons.save_logs_button(
+            self.save_logs_button_handler)
         self.transfer_button = self.buttons.transfer_button(
             self.transfer_button_handler, disabled=(self.config["paths"]["registry_path"] == "" or self.config["paths"]["declaration_path"] == ""))
 
@@ -101,7 +110,7 @@ class UIScript:
         )
 
         self.page.overlay.extend([self.registry_file_picker, self.declaration_file_picker,
-                                 self.declaration_file_saver, self.progress_ring, self.opening_dialog, self.saving_dialog, self.error_dialog])
+                                 self.declaration_file_saver, self.logs_file_saver, self.progress_ring, self.opening_dialog, self.saving_dialog, self.error_dialog])
 
         self.page.navigation_bar = NavigationBar(
             destinations=[
@@ -127,6 +136,7 @@ class UIScript:
             try:
                 return func(self, *args, **kwargs)
             except Exception as e:
+                logger.exception("Ошибка в обработчике UI: %s", func.__name__)
                 if type(e).__name__ == "ValueError":
                     self.error_dialog.content = Text(
                         f"Ошибка: {errors["ValueError"]}.")
@@ -140,6 +150,7 @@ class UIScript:
 
     @error_handler
     def show_transfer_page(self) -> None:
+        logger.debug("Показана вкладка переноса")
         self.page.controls.clear()
         config_data = self.app.read_config()
         self.registry_path_field.value = config_data["paths"]["registry_path"]
@@ -150,19 +161,42 @@ class UIScript:
 
     @error_handler
     def show_settings_page(self) -> None:
+        logger.debug("Показана вкладка настроек")
         self.page.controls.clear()
         config_data = self.app.read_config()
         self.registry_article_field.value = config_data["article_data"]["registry_article_key"]
         self.declaration_article_field.value = config_data["article_data"]["declaration_article_key"]
         self.registry_start_row_field.value = config_data["start_rows"]["registry_start_row"]
         self.declaration_start_row_field.value = config_data["start_rows"]["declaration_start_row"]
-        content = Column([self.article_settings_column, Container(
-            content=self.excel_editor_button, alignment=alignment.center, width=self.page.width)], spacing=50)
+
+        settings_main_content = Column(
+            [self.article_settings_column, Container(
+                content=self.excel_editor_button, alignment=alignment.center, width=self.page.width)],
+            spacing=50
+        )
+        content = Stack(
+            [
+                Container(
+                    content=settings_main_content,
+                    width=self.page.width
+                ),
+                Container(
+                    content=self.save_logs_button,
+                    width=48,
+                    height=48,
+                    right=8,
+                    bottom=8
+                )
+            ],
+            width=self.page.width,
+            height=270
+        )
         self.page.add(content)
 
     @error_handler
     def navigation_bar_handler(self, e):
         selected_index = e.control.selected_index
+        logger.info("Переключение вкладки: %s", selected_index)
         if selected_index == 0:
             self.show_transfer_page()
         elif selected_index == 1:
@@ -204,6 +238,7 @@ class UIScript:
     def registry_file_picker_handler(self, e: FilePickerResultEvent) -> None:
         if e.files:
             selected_file = e.files[0].path
+            logger.info("Выбран файл реестра: %s", selected_file)
             self.app.edit_registry_path(selected_file)
             self.registry_path_field.value = selected_file
             self.open_registry_file_button.disabled = False
@@ -215,6 +250,7 @@ class UIScript:
     def declaration_file_picker_handler(self, e: FilePickerResultEvent) -> None:
         if e.files:
             selected_file = e.files[0].path
+            logger.info("Выбран файл декларации: %s", selected_file)
             self.app.edit_declaration_path(selected_file)
             self.declaration_path_field.value = selected_file
             self.open_declaration_file_button.disabled = False
@@ -226,6 +262,7 @@ class UIScript:
     def declaration_file_saver_handler(self, e: FilePickerResultEvent) -> None:
         save_location = e.path
         if save_location:
+            logger.info("Выбран путь сохранения декларации: %s", save_location)
             self.show_loading_overlay(True)
             self.app.save_temp_declaration(save_location)
             self.app.delete_temp_declaration()
@@ -233,6 +270,7 @@ class UIScript:
 
     @error_handler
     def opening_dialog_handler(self, e=None) -> None:
+        logger.info("Пользователь открыл временную декларацию")
         self.app.open_temp_declaration()
         if Utility.is_file_closed(Utility.get_temp_path()):
             self.page.close(self.opening_dialog)
@@ -242,6 +280,7 @@ class UIScript:
     @error_handler
     def saving_dialog_handler(self, e) -> None:
         if e.control.text == "Сохранить":
+            logger.info("Пользователь выбрал сохранение декларации")
             self.declaration_file_saver.save_file(dialog_title="Сохранение",
                                                   initial_directory=Utility.get_desktop_directory(),
                                                   file_name="Декларация.xlsx",
@@ -250,12 +289,14 @@ class UIScript:
             self.page.close(self.saving_dialog)
             self.page.update()
         else:
+            logger.info("Пользователь отменил сохранение декларации")
             self.app.delete_temp_declaration()
             self.page.close(self.saving_dialog)
             self.page.update()
 
     @error_handler
     def excel_editor_button_handler(self, e=None) -> None:
+        logger.info("Запуск конфигуратора Excel")
         self.progress_ring.visible = True
         self.page.update()
         self.app.start_excel_configurator()
@@ -263,12 +304,30 @@ class UIScript:
         self.page.update()
 
     @error_handler
+    def save_logs_button_handler(self, e=None) -> None:
+        logger.info("Открыт диалог сохранения логов")
+        self.logs_file_saver.save_file(dialog_title="Сохранение логов",
+                                       initial_directory=Utility.get_desktop_directory(),
+                                       file_name="DataTransferApp.log",
+                                       file_type=FilePickerFileType.CUSTOM,
+                                       allowed_extensions=["log", "txt"])
+
+    @error_handler
+    def logs_file_saver_handler(self, e: FilePickerResultEvent) -> None:
+        save_location = e.path
+        if save_location:
+            logger.info("Выбран путь сохранения логов: %s", save_location)
+            self.app.save_log_file(save_location)
+
+    @error_handler
     def show_loading_overlay(self, show) -> None:
+        logger.debug("Индикатор загрузки: %s", show)
         self.progress_ring.visible = show
         self.page.update()
 
     @error_handler
     def transfer_button_handler(self, e=None) -> None:
+        logger.info("Пользователь запустил перенос")
         self.show_loading_overlay(True)
         self.app.transfer()
         self.show_loading_overlay(False)
@@ -278,6 +337,7 @@ class UIScript:
     @error_handler
     def error_dialog_handler(self, e):
         if e.control.text == "Ок":
+            logger.info("Закрыто окно ошибки")
             self.error_dialog.open = False
             if self.progress_ring.visible is True:
                 self.show_loading_overlay(False)
@@ -285,11 +345,14 @@ class UIScript:
 
     @error_handler
     def close_app(self) -> None:
+        logger.info("Закрытие приложения")
         try:
             self.app.delete_temp_excel_file()
         except Exception:
+            logger.debug("Временный файл конфигуратора не удален", exc_info=True)
             pass
         try:
             self.app.delete_temp_declaration()
         except Exception:
+            logger.debug("Временная декларация не удалена", exc_info=True)
             pass

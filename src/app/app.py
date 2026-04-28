@@ -1,10 +1,16 @@
+from logging import getLogger
+
 from src.config_system.config_service import ConfigService
 from src.config_system.excel_configurator import ExcelConfigurator
+from src.config_system.logging_service import LoggingService
 from src.transfer_system.transfer_service import TransferService
+
+logger = getLogger(__name__)
 
 
 class App:
     def __init__(self) -> None:
+        logger.info("Инициализация приложения")
         self.config_service = ConfigService()
         self.transfer_service = TransferService()
         self.excel_configurator = ExcelConfigurator()
@@ -50,3 +56,6 @@ class App:
 
     def save_temp_declaration(self, save_path: str) -> None:
         self.transfer_service.save_temp_declaration(save_path)
+
+    def save_log_file(self, save_path: str) -> None:
+        LoggingService.save_log_file(save_path)

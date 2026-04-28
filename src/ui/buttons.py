@@ -65,6 +65,16 @@ class Buttons:
             tooltip="Конфигуратор"
         )
 
+    def save_logs_button(self, handler) -> IconButton:
+        return IconButton(
+            content=self._icon_asset("open_in_new.svg", 24),
+            on_click=handler,
+            icon_size=24,
+            width=48,
+            height=48,
+            tooltip="Сохранить логи"
+        )
+
     def transfer_button(self, handler, disabled) -> IconButton:
         return IconButton(
             content=self._icon_asset("merge_type.svg", 50),

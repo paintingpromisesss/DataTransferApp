@@ -1,5 +1,6 @@
+from logging import getLogger
 from openpyxl import Workbook, load_workbook
-from os import remove
+from os import path, remove
 from tempfile import NamedTemporaryFile
 from re import match
 from src.config_system.excel_styles import data_cell_style, other_cell_style, article_cell_style
@@ -7,12 +8,15 @@ from openpyxl.styles import Protection
 from src.config_system.utility import Utility
 from src.config_system.config_service import ConfigService
 
+logger = getLogger(__name__)
+
 
 class ExcelConfigurator:
     def __init__(self) -> None:
         self.config_path = Utility.get_config_path()
 
     def init_temp_file(self):
+        logger.info("Создание временного файла конфигуратора Excel")
         self.temp_file = NamedTemporaryFile(
             suffix=".xlsx", delete=False
         )
@@ -32,6 +36,7 @@ class ExcelConfigurator:
         wb.save(self.temp_file.name)
         wb.close()
         self.temp_file.close()
+        logger.info("Временный файл конфигуратора создан: %s", self.temp_file.name)
 
     def _apply_styles_to_cells(self, wb: Workbook) -> None:
         sheet = wb.active
@@ -68,9 +73,11 @@ class ExcelConfigurator:
             pass
 
     def open_excel_configurator(self) -> None:
+        logger.info("Открытие конфигуратора Excel")
         self.init_temp_file()
         Utility.start_file(self.temp_file.name)
         if Utility.is_file_closed(self.temp_file.name):
+            logger.info("Файл конфигуратора закрыт пользователем, чтение настроек")
             wb = load_workbook(self.temp_file.name)
             sheet = wb.active
             for col in sheet.iter_cols(min_row=1, max_row=1, min_col=1, max_col=100):
@@ -91,7 +98,12 @@ class ExcelConfigurator:
             ConfigService.static_edit_transfer_pairs(
                 config_path=self.config_path, edited_config=self.config_data
             )
+            logger.info("Настройки пар переноса обновлены: %s", self.config_data["transfer_pairs"])
         self.delete_temp_file()
 
     def delete_temp_file(self) -> None:
+        if not hasattr(self, "temp_file") or not path.exists(self.temp_file.name):
+            return
+
+        logger.debug("Удаление временного файла конфигуратора: %s", self.temp_file.name)
         remove(self.temp_file.name)

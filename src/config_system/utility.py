@@ -1,4 +1,6 @@
 from os import path, getenv, name
+from sys import argv, executable
+import sys
 from time import sleep
 from subprocess import run
 
@@ -8,6 +10,11 @@ errors = {
 
 
 class Utility:
+    @staticmethod
+    def get_program_directory() -> str:
+        program_path = executable if getattr(sys, "frozen", False) else argv[0]
+        return path.dirname(path.abspath(program_path))
+
     @staticmethod
     def get_app_directory() -> str:
         return path.dirname(path.dirname(path.dirname(path.abspath(__file__))))

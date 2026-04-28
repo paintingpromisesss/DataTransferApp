@@ -1,6 +1,9 @@
+from logging import getLogger
 from os import path, makedirs
 from json import dump, load
 from src.config_system.utility import Utility
+
+logger = getLogger(__name__)
 
 template = {
     "paths": {
@@ -25,14 +28,18 @@ class ConfigService:
         self.config_path = Utility.get_config_path()
         if not path.exists(config_directory):
             makedirs(config_directory)
+            logger.info("Создана папка конфигурации: %s", config_directory)
         if not path.exists(self.config_path):
             self.write_config(template)
+            logger.info("Создан файл конфигурации: %s", self.config_path)
 
     def read_config(self) -> dict:
+        logger.debug("Чтение конфигурации: %s", self.config_path)
         with open(self.config_path, "r") as file:
             return load(file)
 
     def write_config(self, edited_config: dict) -> None:
+        logger.debug("Запись конфигурации: %s", self.config_path)
         with open(self.config_path, "w") as file:
             dump(edited_config, file, indent=4)
 
@@ -41,11 +48,13 @@ class ConfigService:
 
     @staticmethod
     def static_read_config(config_path: str) -> dict:
+        logger.debug("Чтение конфигурации: %s", config_path)
         with open(config_path, "r") as file:
             return load(file)
 
     @staticmethod
     def static_write_config(config_path: str, edited_config: dict) -> None:
+        logger.debug("Запись конфигурации: %s", config_path)
         with open(config_path, "w") as file:
             dump(edited_config, file, indent=4)
 
@@ -57,32 +66,38 @@ class ConfigService:
         config_data = self.read_config()
         config_data["paths"]["registry_path"] = new_registry_path
         self.write_config(config_data)
+        logger.info("Изменен путь к реестру: %s", new_registry_path)
 
     def edit_declaration_path(self, new_declaration_path: str) -> None:
         config_data = self.read_config()
         config_data["paths"]["declaration_path"] = new_declaration_path
         self.write_config(config_data)
+        logger.info("Изменен путь к декларации: %s", new_declaration_path)
 
     def edit_registry_article_key(self, new_registry_article_key: str) -> None:
         config_data = self.read_config()
         if new_registry_article_key != "":
             config_data["article_data"]["registry_article_key"] = new_registry_article_key
             self.write_config(config_data)
+            logger.info("Изменена колонка артикула в реестре: %s", new_registry_article_key)
 
     def edit_declaration_article_key(self, new_declaration_article_key: str) -> None:
         config_data = self.read_config()
         if new_declaration_article_key != "":
             config_data["article_data"]["declaration_article_key"] = new_declaration_article_key
             self.write_config(config_data)
+            logger.info("Изменена колонка артикула в декларации: %s", new_declaration_article_key)
 
     def edit_registry_start_row(self, new_registry_start_row: int) -> None:
         config_data = self.read_config()
         if new_registry_start_row != "":
             config_data["start_rows"]["registry_start_row"] = new_registry_start_row
             self.write_config(config_data)
+            logger.info("Изменена стартовая строка в реестре: %s", new_registry_start_row)
 
     def edit_declaration_start_row(self, new_declaration_start_row: int) -> None:
         config_data = self.read_config()
         if new_declaration_start_row != "":
             config_data["start_rows"]["declaration_start_row"] = new_declaration_start_row
             self.write_config(config_data)
+            logger.info("Изменена стартовая строка в декларации: %s", new_declaration_start_row)
