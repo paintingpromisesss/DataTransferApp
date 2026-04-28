@@ -27,7 +27,7 @@ build-standalone:
 
 installer: build-standalone
 	$(INNO_COMPILER) installer/DataTransferApp.iss
-	$(RM) -r $(STANDALONE_DIR)
+	$(PYTHON) -c "import shutil; shutil.rmtree('$(STANDALONE_DIR)', ignore_errors=True)"
 
 clean-artifacts:
-	$(RM) -r $(STANDALONE_DIR)
+	$(PYTHON) -c "import shutil; shutil.rmtree('$(STANDALONE_DIR)', ignore_errors=True)"
